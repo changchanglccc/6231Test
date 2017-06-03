@@ -7,15 +7,15 @@ public class Server_Configuration {
 	private static int LVL_PORT = 1002;
 	private static int DDO_PORT = 1003;
 	
-	static enum courseRegistered{
+	static enum S_courseRegistered{
 		COMP6231, COMP6651
 	}
 	
-	static enum location{
+	static enum S_location{
 		mtl, lvl, ddo
 	}
 	
-	static enum status{
+	static enum S_status{
 		active, not_active
 	}
 }
