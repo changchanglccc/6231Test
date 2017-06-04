@@ -1,4 +1,9 @@
 package server;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.rmi.RemoteException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,6 +22,7 @@ public class MTL extends Server_Configuration implements MyInterface{
 	static String SERVER_NAME = "SERVER_MTL";
 	static int START = 10000;
 	static String RECORD_ID = null;
+	static int UDP_BUFFER_SIZE = 256;
 	
 	//store some datas in this server
 	static Map<Character, ArrayList<Record>> HASHMAP_MTL = new HashMap<Character, ArrayList<Record>>(){
@@ -155,6 +161,16 @@ public class MTL extends Server_Configuration implements MyInterface{
 		return false;
 	}
 	
+	public static int checkRecordSize() {
+		// TODO
+		return 0;
+	}
+	
+	public static String getRecSzStat() {
+		// TODO
+		return null;
+	}
+	
 	/**
 	 * check the date format
 	 * @param date
@@ -172,8 +188,101 @@ public class MTL extends Server_Configuration implements MyInterface{
 		return true;
 	}
 	
+	/*
+	 * the part below deals with the thread for communications between servers (UDP)
+	 * Ref: https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html
+	 */
 	
+	// reply to packets(requests) from other server comes in (to check the record count)
+	public static void startListenByUDP() {
+		DatagramSocket connection = null;
+		try {
+			connection = new DatagramSocket(LOCAL_PORT);
+			while(true){
+				byte[] buf = new byte[UDP_BUFFER_SIZE]; //a buffer used to create a DatagramPacket
+				// packet is used to receive a datagram from the socket
+				DatagramPacket packet = new DatagramPacket(buf, UDP_BUFFER_SIZE); 
+				connection.receive(packet); // waits forever until a packet is received
+				new UDPListener(connection, packet);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null)
+				connection.close();
+		}
+	}
 	
+	public static class UDPListener extends Thread {
+		
+		DatagramSocket connection = null;
+		DatagramPacket packet = null;
+		String res = null;
+		
+		public UDPListener() {
+			this("no arguments");
+		}
+		
+		public UDPListener(String s) {
+			System.out.println(s);
+		}
+		
+		public UDPListener(DatagramSocket connection, DatagramPacket packet) {
+			this.connection = connection;
+			this.packet = packet;
+			res = getRecSzStat(); // TODO
+			this.start();
+		}
+		
+		public void run() {
+			DatagramPacket reply = new DatagramPacket(
+					res.getBytes(),
+					res.getBytes().length,
+					packet.getAddress(),
+					packet.getPort()
+					);
+			try {
+				connection.send(reply);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	// send request to remote server
+	public static String getRecSzFromRemoteServer(int port) {
+		DatagramSocket connection = null;
+		String ip = "127.0.0.1";
+		int portNbr = port;
+		
+		try {
+			connection = new DatagramSocket();
+			
+			// send request to remote server
+			byte[] msg = (new String("recordSize")).getBytes();
+			InetAddress host = InetAddress.getByName(ip);
+			DatagramPacket request = new DatagramPacket(
+					msg,
+					msg.length,
+					host,
+					portNbr);
+			connection.send(request);
+			
+			// get result from the response from remote server
+			byte[] buf = new byte[UDP_BUFFER_SIZE];
+			DatagramPacket reply = new DatagramPacket(buf, UDP_BUFFER_SIZE);
+			connection.receive(reply);
+			String res = new String(reply.getData()).trim();
+			return res;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null)
+				connection.close();
+		}
+		
+		return null;
+	}
 	
 	
 	
