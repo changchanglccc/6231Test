@@ -18,4 +18,17 @@ public class Server_Configuration {
 	static enum S_status{
 		active, not_active
 	}
+
+	public static int getMTL_PORT() {
+		return MTL_PORT;
+	}
+
+	public static int getLVL_PORT() {
+		return LVL_PORT;
+	}
+
+	public static int getDDO_PORT() {
+		return DDO_PORT;
+	}
+
 }

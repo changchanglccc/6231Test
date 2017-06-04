@@ -94,10 +94,10 @@ public class MTL extends Server_Configuration implements MyInterface{
 		if(!checkLocation(courseRegistered)){
 			return " Course is wrong! There are two courses to be registered: COMP6231 and COMP6651. ";
 		}
-		if(!checkLocation(status)){
+		if(!checkStatus(status)){
 			return " Status is wrong! There are two status : active and not_active. ";
 		}
-		if(checkLocation(statusDate)){   //has doubt about it---> when run the code and check!
+		if(!checkStatusDate(statusDate)){   //has doubt about it---> when run the code and check!
 			return " The format of statusDate is worong! The correct format is 'yyyy/mm/dd'. ";
 		}
 		
@@ -124,13 +124,76 @@ public class MTL extends Server_Configuration implements MyInterface{
 
 	@Override
 	public String getRecordCounts() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		int lvlSize = Integer.parseInt(getRecSzFromRemoteServer(Server_Configuration.getLVL_PORT()));
+		int ddoSize = Integer.parseInt(getRecSzFromRemoteServer(Server_Configuration.getDDO_PORT()));
+		int mtlSize = checkRecordSize();
+		String result = "MTL: " + mtlSize + ", LVL: " + lvlSize + ", ddoSize: " + ddoSize ;
+		return result;
 	}
 
 	@Override
-	public String editRecord(int recordID, String fieldName, String newValue) throws RemoteException {
-		// TODO Auto-generated method stub
+	public String editRecord(String recordID, String fieldName, String newValue) throws RemoteException {
+		for(Map.Entry<Character, ArrayList<Record>> entry : MTL.HASHMAP_MTL.entrySet()){
+			for(Record record: entry.getValue()){
+				if(recordID.equals(record.getRecordID())){
+					if(recordID.substring(0, 2).equalsIgnoreCase("TR")){
+						if(fieldName.equalsIgnoreCase("address")){
+							synchronized(this){
+								record.getTRecord().setAddress(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("phone")){
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("location")){
+							if(!checkLocation(newValue)){
+								return "Location is wrong, there are three locations : mtl, lvl and ddo.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}
+						
+					}else if(recordID.substring(0, 2).equalsIgnoreCase("SR")){
+						if(fieldName.equalsIgnoreCase("courseRegistered")){
+							if(!checkCourseRegistered(newValue)){
+								return "Registered Course is wrong, there are two courses: COMP6231 and COMP6651.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setAddress(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("status")){
+							if(!checkStatus(newValue)){
+								return "Status is wrong, there are two status: active and not_active.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("statusDate")){
+							if(!checkLocation(newValue)){
+								return "statusDate is wrong, the format is 'yyyy/mm/dd'.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}
+					}
+				}
+								
+			}
+		}
 		return null;
 	}
 	
@@ -161,19 +224,6 @@ public class MTL extends Server_Configuration implements MyInterface{
 		return false;
 	}
 	
-	public static int checkRecordSize() {
-		int size = 0;
-		for (Map.Entry<Character, ArrayList<Record>> entry : MTL.HASHMAP_MTL.entrySet()) {
-			size += entry.getValue().size();
-		}
-		return size;
-	}
-	
-	public static String getRecSzStat() {
-		// TODO: do we need this?
-		return null;
-	}
-	
 	/**
 	 * check the date format
 	 * @param date
@@ -190,6 +240,21 @@ public class MTL extends Server_Configuration implements MyInterface{
 		}
 		return true;
 	}
+	
+	public static int checkRecordSize() {
+		int size = 0;
+		for (Map.Entry<Character, ArrayList<Record>> entry : MTL.HASHMAP_MTL.entrySet()) {
+			size += entry.getValue().size();
+		}
+		return size;
+	}
+	
+	public static String getRecSzStat() {
+		// TODO: do we need this?
+		return null;
+	}
+	
+
 	
 	/*
 	 * the part below deals with the thread for communications between servers (UDP)
@@ -251,8 +316,11 @@ public class MTL extends Server_Configuration implements MyInterface{
 			}
 		}
 	}
-	
-	// send request to remote server
+	/**
+	 * send request to remote server, and get other server's hashmap size back
+	 * @param port
+	 * @return
+	 */
 	public static String getRecSzFromRemoteServer(int port) {
 		DatagramSocket connection = null;
 		String ip = "127.0.0.1";
