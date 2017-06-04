@@ -1,11 +1,17 @@
 package server;
 
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+
 public class Server_Configuration {
 	private static int REGISTRY_PORT = 2964;
 	
-	private static int MTL_PORT = 1001;
-	private static int LVL_PORT = 1002;
-	private static int DDO_PORT = 1003;
+	private static int MTL_PORT = 2047;
+	private static int LVL_PORT = 2048;
+	private static int DDO_PORT = 2049;
+	
+	static Logger LOGGER = null;
+	static FileHandler file = null;
 	
 	static enum S_courseRegistered{
 		COMP6231, COMP6651
@@ -18,7 +24,7 @@ public class Server_Configuration {
 	static enum S_status{
 		active, not_active
 	}
-
+	
 	public static int getMTL_PORT() {
 		return MTL_PORT;
 	}
@@ -30,5 +36,5 @@ public class Server_Configuration {
 	public static int getDDO_PORT() {
 		return DDO_PORT;
 	}
-
+	
 }

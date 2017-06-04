@@ -5,11 +5,18 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
-import myInterface.MyInterface;
+import client.Manager;
+import csInterface.ClientCalls;
 import records.*;
 
 /**
@@ -17,12 +24,16 @@ import records.*;
  * @author chongli
  *
  */
-public class MTL extends Server_Configuration implements MyInterface{
-	static int LOCAL_PORT = 1001;
+public class MTL extends Server_Configuration implements ClientCalls{
+	static int LOCAL_PORT = 2047;
 	static String SERVER_NAME = "SERVER_MTL";
 	static int START = 10000;
 	static String RECORD_ID = null;
 	static int UDP_BUFFER_SIZE = 256;
+	
+	static String ManagerID = null;
+	
+	static String LOG_DIR = "D:/logs/clientLog/"; 
 	
 	//store some datas in this server
 	static Map<Character, ArrayList<Record>> HASHMAP_MTL = new HashMap<Character, ArrayList<Record>>(){
@@ -49,12 +60,48 @@ public class MTL extends Server_Configuration implements MyInterface{
 	}
 	
 	public static void main(String[] args){
-		
-		
+		initLogger(MTL.SERVER_NAME);
+		registerServer();
+		startListenByUDP();
 	}
 
+	public static void registerServer() {
+		try {
+			String server_name = MTL.SERVER_NAME;
+			ClientCalls obj = new MTL();
+			ClientCalls stub = (ClientCalls) UnicastRemoteObject.exportObject(obj, 0);
+			Registry registry = LocateRegistry.getRegistry();
+	        registry.rebind(server_name, stub);
+	        System.out.println("MTL server is running");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	/**
+	 * Initial Logger.
+	 * @param server_name
+	 */
+	public static void initLogger(String server_name){
+		try {
+			Server_Configuration.LOGGER = Logger.getLogger(Manager.class.getName());
+			Server_Configuration.LOGGER.setUseParentHandlers(false);
+			Server_Configuration.file = new FileHandler(LOG_DIR + server_name+".log",true);
+			Server_Configuration.LOGGER.addHandler(Server_Configuration.file);
+			SimpleFormatter formatter = new SimpleFormatter();
+			Server_Configuration.file.setFormatter(formatter);
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
-	public String createTRecord(String firstName, String lastName, String address, String phone, String specialization,
+	public String createTRecord(
+			String firstName, String lastName,
+			String address, String phone,
+			String specialization,
 			String location) throws RemoteException {
 		//check format
 		if(!checkLocation(location)){
@@ -88,10 +135,14 @@ public class MTL extends Server_Configuration implements MyInterface{
 	}
 
 	@Override
-	public String createSRecord(String firstName, String lastName, String courseRegistered, String status,
-			String statusDate) throws RemoteException {
+	public String createSRecord(
+			String firstName, String lastName,
+			String courseRegistered,
+			String status,
+			String statusDate)
+					throws RemoteException {
 		//check format
-		if(!checkLocation(courseRegistered)){
+		if(!checkCourseRegistered(courseRegistered)){
 			return " Course is wrong! There are two courses to be registered: COMP6231 and COMP6651. ";
 		}
 		if(!checkStatus(status)){
@@ -254,8 +305,6 @@ public class MTL extends Server_Configuration implements MyInterface{
 		return null;
 	}
 	
-
-	
 	/*
 	 * the part below deals with the thread for communications between servers (UDP)
 	 * Ref: https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html
@@ -298,8 +347,34 @@ public class MTL extends Server_Configuration implements MyInterface{
 		public UDPListener(DatagramSocket connection, DatagramPacket packet) {
 			this.connection = connection;
 			this.packet = packet;
+			String reqPrefix = new String(packet.getData()).trim().substring(0, 4);
+			switch (reqPrefix) {
+			case "7395":
+				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Check ManagerID: " + (new String(packet.getData()).trim().substring(3)+ " valid or not."));
+				res = checkManagerID(new String(packet.getData()).trim().substring(3));
+				break;
+			case "6354":
+				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Search HashMap, SearchType: " + (new String(packet.getData()).trim().substring(3)));
+				res = checkRecordSize() + "";
+				break;
+			}
 			res = getRecSzStat(); // TODO
 			this.start();
+		}
+		
+		/**
+		 * Check ManagerID.
+		 * @param managerID
+		 * @return
+		 */
+		public static String checkManagerID(String managerID){
+			for(String account: MTL.MANAGERLIST){
+				if(account.equalsIgnoreCase(managerID)){
+					MTL.ManagerID = managerID;
+					return "valid";
+				}
+			}
+			return "invalid";
 		}
 		
 		public void run() {
@@ -316,6 +391,7 @@ public class MTL extends Server_Configuration implements MyInterface{
 			}
 		}
 	}
+	
 	/**
 	 * send request to remote server, and get other server's hashmap size back
 	 * @param port
@@ -324,13 +400,14 @@ public class MTL extends Server_Configuration implements MyInterface{
 	public static String getRecSzFromRemoteServer(int port) {
 		DatagramSocket connection = null;
 		String ip = "127.0.0.1";
+		String reqPrefix = "6354"; // prefix code 6354 means asking the record size
 		int portNbr = port;
 		
 		try {
 			connection = new DatagramSocket();
 			
 			// send request to remote server
-			byte[] msg = (new String("recordSize")).getBytes();
+			byte[] msg = (new String(reqPrefix)).getBytes();
 			InetAddress host = InetAddress.getByName(ip);
 			DatagramPacket request = new DatagramPacket(
 					msg,
