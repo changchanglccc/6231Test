@@ -33,7 +33,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 	
 	static String ManagerID = null;
 	
-	static String LOG_DIR = "D:/logs/clientLog/"; 
+	static String LOG_DIR = "/Users/m.ding/logs/serverLog/"; 
 	
 	//store some datas in this server
 	static Map<Character, ArrayList<Record>> HASHMAP_MTL = new HashMap<Character, ArrayList<Record>>(){
@@ -49,9 +49,9 @@ public class MTL extends Server_Configuration implements ClientCalls{
 	
 	static ArrayList<String> MANAGERLIST = new ArrayList<String>(){
 		{
-			MANAGERLIST.add("MTL1111");
-			MANAGERLIST.add("MTL1112");
-			MANAGERLIST.add("MTL1113");
+			add("MTL1111");
+			add("MTL1112");
+			add("MTL1113");
 		}	
 	};
 	
@@ -69,9 +69,9 @@ public class MTL extends Server_Configuration implements ClientCalls{
 		try {
 			String server_name = MTL.SERVER_NAME;
 			ClientCalls obj = new MTL();
-			ClientCalls stub = (ClientCalls) UnicastRemoteObject.exportObject(obj, 0);
+//			ClientCalls stub = (ClientCalls) UnicastRemoteObject.exportObject(obj, 0);
 			Registry registry = LocateRegistry.getRegistry();
-	        registry.rebind(server_name, stub);
+	        registry.bind(server_name, obj);
 	        System.out.println("MTL server is running");
 		} catch (Exception e) {
 			e.printStackTrace();
