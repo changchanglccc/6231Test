@@ -162,12 +162,15 @@ public class MTL extends Server_Configuration implements MyInterface{
 	}
 	
 	public static int checkRecordSize() {
-		// TODO
-		return 0;
+		int size = 0;
+		for (Map.Entry<Character, ArrayList<Record>> entry : MTL.HASHMAP_MTL.entrySet()) {
+			size += entry.getValue().size();
+		}
+		return size;
 	}
 	
 	public static String getRecSzStat() {
-		// TODO
+		// TODO: do we need this?
 		return null;
 	}
 	
