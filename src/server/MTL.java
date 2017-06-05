@@ -30,11 +30,12 @@ public class MTL extends ServerConfig implements ClientCalls{
 	static int START = 10000;
 	static String RECORD_ID = null;
 	static int UDP_BUFFER_SIZE = 256;
-	
+
 	static String ManagerID = null;
-	
-	static String LOG_DIR = "/Users/chongli/logs/serverLog/"; 
-	
+
+	static String LOG_DIR = "/Users/chongli/logs/serverLog/";
+//	static String LOG_DIR = "G:/workspace/Logs/serverLog/";
+
 	//store some datas in this server
 	static Map<Character, ArrayList<Record>> HASHMAP_MTL = new HashMap<Character, ArrayList<Record>>(){
 		{
@@ -43,22 +44,22 @@ public class MTL extends ServerConfig implements ClientCalls{
 			put('C', new ArrayList<Record>(Arrays.asList(new Record("SR00003", new Student("Frank", "Cao", "COMP6231", "active", "2017/03/31")))));
 			put('D', new ArrayList<Record>(Arrays.asList(new Record("SR00004", new Student("Dong", "Ding", "COMP6231", "active", "2017/01/28")))));
 			put('H', new ArrayList<Record>(Arrays.asList(new Record("SR00005", new Student("Frank", "Huang", "COMP6651", "active", "2016/08/10")))));
-			
+
 		}
 	};
-	
+
 	static ArrayList<String> MANAGERLIST = new ArrayList<String>(){
 		{
 			add("MTL1111");
 			add("MTL1112");
 			add("MTL1113");
-		}	
+		}
 	};
-	
+
 	public MTL(){
 		super();
 	}
-	
+
 	public static void main(String[] args){
 		initLogger(MTL.SERVER_NAME);
 		registerServer();
@@ -75,12 +76,15 @@ public class MTL extends ServerConfig implements ClientCalls{
 	        System.out.println("MTL server is running");
 		} catch (Exception e) {
 			e.printStackTrace();
-		}	
+		}
 	}
-	
+
 	/**
 	 * Initial Logger.
 	 * @param server_name
+	 * Reference of logger:
+	 * https://stackoverflow.com/questions/2533227/how-can-i-disable-the-default-console-handler-while-using-the-java-logging-api
+	 * https://stackoverflow.com/questions/194765/how-do-i-get-java-logging-output-to-appear-on-a-single-line
 	 */
 	public static void initLogger(String server_name){
 		try {
@@ -96,7 +100,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public String createTRecord(
 			String firstName, String lastName,
@@ -107,16 +111,16 @@ public class MTL extends ServerConfig implements ClientCalls{
 		if(!checkLocation(location)){
 			return " There are three locations: mtl, lvl and ddo, please choose one of them...";
 		}
-		
+
 		ArrayList<Record> recordList = null;
 		Character key = lastName.charAt(0);
-		
+
 		if(HASHMAP_MTL.containsKey(key)){
 			recordList = HASHMAP_MTL.get(key);
 		}else{
 			recordList = new ArrayList<Record>();
 		}
-		
+
 		//create a TRecord
 		Teacher Teacher = new Teacher(firstName, lastName, address, phone, specialization, location);
 		RECORD_ID = "TR" + getSTART() ;
@@ -125,10 +129,10 @@ public class MTL extends ServerConfig implements ClientCalls{
 		synchronized(this){
 			HASHMAP_MTL.put(key, recordList);
 		}
-		//need to add log
+		ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " creats teacher record: "+ "\n" +TRecord.toString());
 		return " You have create a TRecord ：" + TRecord ;
 	}
-	
+
 	public synchronized int getSTART(){
 		START ++;
 		return START;
@@ -136,7 +140,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 
 	@Override
 	public String createSRecord(
-			String firstName, 
+			String firstName,
 			String lastName,
 			String courseRegistered,
 			String status,
@@ -152,16 +156,16 @@ public class MTL extends ServerConfig implements ClientCalls{
 		if(!checkStatusDate(statusDate)){   //has doubt about it---> when run the code and check!
 			return " The format of statusDate is worong! The correct format is 'yyyy/mm/dd'. ";
 		}
-		
+
 		ArrayList<Record> recordList = null;
 		Character key = lastName.charAt(0);
-		
+
 		if(HASHMAP_MTL.containsKey(key)){
 			recordList = HASHMAP_MTL.get(key);
 		}else{
 			recordList = new ArrayList<Record>();
 		}
-		
+
 		//create a SRecord
 		Student student = new Student(firstName, lastName, courseRegistered, status, statusDate);
 		RECORD_ID = "SR" + getSTART() ;
@@ -170,7 +174,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 		synchronized(this){
 			HASHMAP_MTL.put(key, recordList);
 		}
-		//need to add log
+		ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " creats student record: "+ "\n" +SRecord.toString());
 		return " You have create a SRecord ：" + SRecord ;
 	}
 
@@ -180,6 +184,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 		String ddoSize = getRecSzFromRemoteServer(ServerConfig.getDDO_PORT());
 		int mtlSize = checkRecordSize();
 		String result = "MTL: " + mtlSize + ", LVL: " + lvlSize + ", DDO: " + ddoSize ;
+		ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " search RecordCounts: "+ "\n" + result);
 		return result;
 	}
 
@@ -193,13 +198,13 @@ public class MTL extends ServerConfig implements ClientCalls{
 							synchronized(this){
 								record.getTRecord().setAddress(newValue);
 							}
-							//add log
+							ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " edit the address of teacher record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}else if(fieldName.equalsIgnoreCase("phone")){
 							synchronized(this){
 								record.getTRecord().setPhone(newValue);
 							}
-							//add log
+							ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " edit the phone of teacher record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}else if(fieldName.equalsIgnoreCase("location")){
 							if(!checkLocation(newValue)){
@@ -208,10 +213,10 @@ public class MTL extends ServerConfig implements ClientCalls{
 							synchronized(this){
 								record.getTRecord().setLocation(newValue);
 							}
-							//add log
+							ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " edit the location of teacher record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}
-						
+
 					}else if(recordID.substring(0, 2).equalsIgnoreCase("SR")){
 						if(fieldName.equalsIgnoreCase("courseRegistered")){
 							if(!checkCourseRegistered(newValue)){
@@ -220,7 +225,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 							synchronized(this){
 								record.getSRecord().setCourseRegistered(newValue);
 							}
-							//add log
+							ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " edit the courseRegistered of teacher record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}else if(fieldName.equalsIgnoreCase("status")){
 							if(!checkStatus(newValue)){
@@ -229,7 +234,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 							synchronized(this){
 								record.getSRecord().setStatus(newValue);
 							}
-							//add log
+							ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " edit the status of student record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}else if(fieldName.equalsIgnoreCase("statusDate")){
 							if(!checkLocation(newValue)){
@@ -238,17 +243,17 @@ public class MTL extends ServerConfig implements ClientCalls{
 							synchronized(this){
 								record.getSRecord().setStatusDate(newValue);
 							}
-							//add log
+							ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " edit the status date of student record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}
 					}
 				}
-								
+
 			}
 		}
 		return null;
 	}
-	
+
 	public static boolean checkLocation(String location){
 		for(ServerConfig.S_location slocation :ServerConfig.S_location.values()){
 			if(location.equalsIgnoreCase(slocation.toString())){
@@ -257,25 +262,25 @@ public class MTL extends ServerConfig implements ClientCalls{
 		}
 		return false;
 	}
-	
+
 	public static boolean checkCourseRegistered(String courseRegistered){
 		for(ServerConfig.S_courseRegistered course: ServerConfig.S_courseRegistered.values()){
 			if(courseRegistered.equalsIgnoreCase(course.toString())){
 				return true;
 			}
-		}		
+		}
 		return false;
 	}
-	
+
 	public static boolean checkStatus(String status){
 		for(ServerConfig.S_status sStatus: ServerConfig.S_status.values()){
 			if(status.equalsIgnoreCase(sStatus.toString())){
 				return true;
 			}
-		}		
+		}
 		return false;
 	}
-	
+
 	/**
 	 * check the date format
 	 * @param date
@@ -292,7 +297,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 		}
 		return true;
 	}
-	
+
 	public static int checkRecordSize() {
 		int size = 0;
 		for (Map.Entry<Character, ArrayList<Record>> entry : MTL.HASHMAP_MTL.entrySet()) {
@@ -300,17 +305,12 @@ public class MTL extends ServerConfig implements ClientCalls{
 		}
 		return size;
 	}
-	
-//	public static String getRecSzStat() {
-//		// TODO: do we need this?
-//		return null;
-//	}
-	
+
 	/*
 	 * the part below deals with the thread for communications between servers (UDP)
 	 * Ref: https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html
 	 */
-	
+
 	// reply to packets(requests) from other server comes in (to check the record count)
 	public static void startListenByUDP() {
 		DatagramSocket connection = null;
@@ -319,7 +319,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 			while(true){
 				byte[] buf = new byte[UDP_BUFFER_SIZE]; //a buffer used to create a DatagramPacket
 				// packet is used to receive a datagram from the socket
-				DatagramPacket packet = new DatagramPacket(buf, UDP_BUFFER_SIZE); 
+				DatagramPacket packet = new DatagramPacket(buf, UDP_BUFFER_SIZE);
 				connection.receive(packet); // waits forever until a packet is received
 				new UDPListener(connection, packet);
 			}
@@ -330,21 +330,21 @@ public class MTL extends ServerConfig implements ClientCalls{
 				connection.close();
 		}
 	}
-	
+
 	public static class UDPListener extends Thread {
-		
+
 		DatagramSocket connection = null;
 		DatagramPacket packet = null;
 		String res = null;
-		
+
 		public UDPListener() {
 			this("no arguments");
 		}
-		
+
 		public UDPListener(String s) {
 			System.out.println(s);
 		}
-		
+
 		public UDPListener(DatagramSocket connection, DatagramPacket packet) {
 			this.connection = connection;
 			this.packet = packet;
@@ -362,7 +362,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 //			res = getRecSzStat(); // TODO
 			this.start();
 		}
-		
+
 		/**
 		 * Check ManagerID.
 		 * @param managerID
@@ -377,7 +377,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 			}
 			return "invalid";
 		}
-		
+
 		public void run() {
 			DatagramPacket reply = new DatagramPacket(
 					res.getBytes(),
@@ -392,7 +392,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 			}
 		}
 	}
-	
+
 	/**
 	 * send request to remote server, and get other server's hashmap size back
 	 * @param port
@@ -403,10 +403,10 @@ public class MTL extends ServerConfig implements ClientCalls{
 		String ip = "127.0.0.1";
 		String reqPrefix = "6354"; // prefix code 6354 means asking the record size
 		int portNbr = port;
-		
+
 		try {
 			connection = new DatagramSocket();
-			
+
 			// send request to remote server
 			byte[] msg = (new String(reqPrefix)).getBytes();
 			InetAddress host = InetAddress.getByName(ip);
@@ -416,7 +416,7 @@ public class MTL extends ServerConfig implements ClientCalls{
 					host,
 					portNbr);
 			connection.send(request);
-			
+
 			// get result from the response from remote server
 			byte[] buf = new byte[UDP_BUFFER_SIZE];
 			DatagramPacket reply = new DatagramPacket(buf, UDP_BUFFER_SIZE);
@@ -431,11 +431,11 @@ public class MTL extends ServerConfig implements ClientCalls{
 		}
 		return null;
 	}
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
 }
