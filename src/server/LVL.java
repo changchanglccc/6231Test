@@ -235,7 +235,7 @@ public class LVL extends ServerConfig implements ClientCalls{
 							ServerConfig.LOGGER.info("Manager: "+ LVL.ManagerID + " edit the status of student record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}else if(fieldName.equalsIgnoreCase("statusDate")){
-							if(!checkLocation(newValue)){
+							if(!checkStatusDate(newValue)){
 								return "statusDate is wrong, the format is 'yyyy/mm/dd'.  ";
 							}
 							synchronized(this){
