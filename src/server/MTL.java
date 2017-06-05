@@ -351,11 +351,11 @@ public class MTL extends Server_Configuration implements ClientCalls{
 			String reqPrefix = new String(packet.getData()).trim().substring(0, 4);
 			switch (reqPrefix) {
 			case "7395":
-				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Check ManagerID: " + (new String(packet.getData()).trim().substring(3)+ " valid or not."));
-				res = checkManagerID(new String(packet.getData()).trim().substring(3));
+				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Check ManagerID: " + (new String(packet.getData()).trim().substring(4)+ " valid or not."));
+				res = checkManagerID(new String(packet.getData()).trim().substring(4));
 				break;
 			case "6354":
-				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Search HashMap, SearchType: " + (new String(packet.getData()).trim().substring(3)));
+				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Search HashMap, SearchType: " + (new String(packet.getData()).trim().substring(4)));
 				res = checkRecordSize() + "";
 				break;
 			}
