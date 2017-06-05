@@ -187,7 +187,7 @@ public class DDO extends ServerConfig implements ClientCalls{
 
 	@Override
 	public String editRecord(String recordID, String fieldName, String newValue) throws RemoteException {
-		for(Map.Entry<Character, ArrayList<Record>> entry : LVL.HASHMAP_LVL.entrySet()){
+		for(Map.Entry<Character, ArrayList<Record>> entry : DDO.HASHMAP_DDO.entrySet()){
 			for(Record record: entry.getValue()){
 				if(recordID.equals(record.getRecordID())){
 					if(recordID.substring(0, 2).equalsIgnoreCase("TR")){
@@ -208,7 +208,7 @@ public class DDO extends ServerConfig implements ClientCalls{
 								return "Location is wrong, there are three locations : mtl, lvl and ddo.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setPhone(newValue);
+								record.getTRecord().setLocation(newValue);
 							}
 							ServerConfig.LOGGER.info("Manager: "+ DDO.ManagerID + " edit the location of teacher record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
@@ -220,7 +220,7 @@ public class DDO extends ServerConfig implements ClientCalls{
 								return "Registered Course is wrong, there are two courses: COMP6231 and COMP6651.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setAddress(newValue);
+								record.getSRecord().setCourseRegistered(newValue);
 							}
 							ServerConfig.LOGGER.info("Manager: "+ DDO.ManagerID + " edit the courseRegistered of teacher record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
@@ -229,16 +229,16 @@ public class DDO extends ServerConfig implements ClientCalls{
 								return "Status is wrong, there are two status: active and not_active.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setPhone(newValue);
+								record.getSRecord().setStatus(newValue);
 							}
 							ServerConfig.LOGGER.info("Manager: "+ DDO.ManagerID + " edit the status of student record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
 						}else if(fieldName.equalsIgnoreCase("statusDate")){
-							if(!checkLocation(newValue)){
+							if(!checkStatusDate(newValue)){
 								return "statusDate is wrong, the format is 'yyyy/mm/dd'.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setPhone(newValue);
+								record.getSRecord().setStatusDate(newValue);
 							}
 							ServerConfig.LOGGER.info("Manager: "+ DDO.ManagerID + " edit the status date of student record: "+ "\n" + record.toString());
 							return "Successfully edit : " + record.toString();
