@@ -26,7 +26,7 @@ public class Manager {
 	
 	static Logger LOGGER = null;
 	static FileHandler FILE = null;
-	static String LOG_DIR = "/Users/m.ding/logs/clientLog/"; 
+	static String LOG_DIR = "/Users/chongli/logs/clientLog/"; 
 	
 	public static void showMenu(String managerID){
 
@@ -34,24 +34,24 @@ public class Manager {
 		System.out.println("--- Now the Manager is :" + managerID + "------");
 		System.out.println();
 		System.out.println("------ Here is 5 options for you ------");
-		System.out.println("1. Create a Teacher Record.  ");
-		System.out.println("2. Create a Student Record.  ");
-		System.out.println("3. Get the count of Records.  ");
-		System.out.println("4. Edit Record.  ");
-		System.out.println("5. Exit.  ");	
+		System.out.println("1: Create a Teacher Record.  ");
+		System.out.println("2: Create a Student Record.  ");
+		System.out.println("3: Get the count of Records.  ");
+		System.out.println("4: Edit Record.  ");
+		System.out.println("5: Exit.  ");	
 	}
 	
 	public static ClientCalls fetchServerInfo(String managerID){
 		try {
 			if(managerID.substring(0, 3).equalsIgnoreCase("MTL")){
-				Registry registry = LocateRegistry.getRegistry("127.0.0.1", 2964);
-				return (ClientCalls) registry.lookup("server_mtl");
+				Registry registry = LocateRegistry.getRegistry(2964);
+				return (ClientCalls) registry.lookup("SERVER_MTL");
 			}else if(managerID.substring(0, 3).equalsIgnoreCase("LVL")){
-				Registry registry = LocateRegistry.getRegistry("127.0.0.1", 2964);
-				return (ClientCalls) registry.lookup("server_lvl");
+				Registry registry = LocateRegistry.getRegistry(2964);
+				return (ClientCalls) registry.lookup("SERVER_LVL");
 			}else if(managerID.substring(0, 3).equalsIgnoreCase("DDO")){
-				Registry registry = LocateRegistry.getRegistry("127.0.0.1", 2964);
-				return (ClientCalls) registry.lookup("server_ddo");
+				Registry registry = LocateRegistry.getRegistry(2964);
+				return (ClientCalls) registry.lookup("SERVER_DDO");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -64,14 +64,14 @@ public class Manager {
 		while (!valid) {
 			Scanner in = new Scanner(System.in);
 			do {
-				System.out.println("****Please input the manager ID****");
+				System.out.println("--- Please input the manager ID: ---");
 				ManagerID = in.next();
 			} while (!checkManagerIDFormat(ManagerID));
 			valid = true;
 		}
 	}
 	
-	public static Boolean checkManagerIDFormat(String managerID){
+	public static Boolean checkManagerIDFormat(String managerID){ //???? why we input MTL1114, it gives err back?(yesterday night test)
 		String pattern = "^(MTL|LVL|DDO)(\\d{4})$";
 		Pattern re = Pattern.compile(pattern,Pattern.CASE_INSENSITIVE);
 		Matcher matcher = re.matcher(managerID);
@@ -174,81 +174,76 @@ public class Manager {
 				}
 				// Manage user selection.
 				switch(userInput){
-				case 1:
-					System.out.println("First Name: ");
+				case 1: //create a teacher record
+					System.out.println("Please input the FirstName : ");
 					String firstName = keyboard.next();
-					System.out.println("Last Name: ");
+					System.out.println("Please input the LastName : ");
 					String lastName = keyboard.next();
-					System.out.println("Address: ");
+					System.out.println("Please input the Address : ");
 					String address = keyboard.next();
-					System.out.println("Phone Number: ");
+					System.out.println("Please input the Phone Number : ");
 					String phoneNumber = keyboard.next();
-					System.out.println("Specialization: ");
+					System.out.println("Please input the Specialization : ");
 					String specialization = keyboard.next();
-					System.out.println("Location(MTL/LVL/DDO): ");
+					System.out.println("Please input the Location ( MTL / LVL / DDO) : ");
 					String location= keyboard.next();
 					
-					String D_result = STUB.createTRecord(firstName, lastName, address, phoneNumber, specialization, location);
-					LOGGER.info("Manager Creat Doctor Record Succeed!" + "\n" + D_result);
-					System.out.println(D_result);
+					String TResult = STUB.createTRecord(firstName, lastName, address, phoneNumber, specialization, location);
+					LOGGER.info("Record created successfully for Teacher." + "\n" +TResult);
+					System.out.println(TResult);
 					
 					showMenu(ManagerID);
 				break;
 				
-				case 2:
-					System.out.println("Please input the FirstName");
+				case 2: //create a student record
+					System.out.println("Please input the FirstName : ");
 					String firstname = keyboard.next();
-					System.out.println("Please input the LastName");
+					System.out.println("Please input the LastName : ");
 					String lastname = keyboard.next();
-					System.out.println("Please input the Designation(junior/senior)");
-					String designation = keyboard.next();
-					System.out.println("Please input the Status(active/terminated)");
+					System.out.println("Please input the Course you regiestered (COMP6231 / COMP6651) : ");
+					String courseRegistered = keyboard.next();
+					System.out.println("Please input the Status(active / not_active) : ");
 					String status = keyboard.next();
-					System.out.println("Please input the Status Date(yyyy/mm/dd/)");
+					System.out.println("Please input the Status Date('yyyy/mm/dd') : ");
 					String statusDate = keyboard.next();
 					
-					String N_result = STUB.createSRecord(firstname, lastname, designation, status, statusDate);
-					LOGGER.info("Record created successfully for Nurse. "+ lastname + "/n" + N_result);
-					System.out.println(N_result);
+					String SResult = STUB.createSRecord(firstname, lastname, courseRegistered, status, statusDate);
+					LOGGER.info("Record created successfully for Student. "+ lastname + "/n" + SResult);
+					System.out.println(SResult);
 					
 					showMenu(ManagerID);
 				break;
 				
-				case 3:
-					System.out.println("Please input search type");
-					System.out.println("Type in 'DR' for getting doctor record of each clinic");
-					System.out.println("Type in 'NR' for getting nurse record of each clinic");
-					System.out.println("Type in 'ALL' for getting total record of each clinic");
-					String searchtype = keyboard.next();
-					String S_result = STUB.getRecordCounts();
+				case 3: //get the count of Records
+					String CountResult = STUB.getRecordCounts();
 					
-					LOGGER.info("Get Record Counts: " + "\n" + S_result);
-					System.out.println(S_result);
+					LOGGER.info("The count of Records is : " + "\n" + CountResult);
+					System.out.println(CountResult);
 					
 					showMenu(ManagerID);
 				break;
 				
-				case 4:
-					System.out.println("Please input the RecordID");
+				case 4: // edit record
+					System.out.println("Please input the RecordID : ");
 					String recordID = keyboard.next();
-					System.out.println("Please input the FieldName");
+					System.out.println("Please input the FieldName : ");
 					String fieldname = keyboard.next();
-					System.out.println("Please input the New Value");
+					System.out.println("Please input the New Value : ");
 					String newvalue = keyboard.next();
-					String E_result = STUB.editRecord(recordID, fieldname, newvalue);
+					String editResult = STUB.editRecord(recordID, fieldname, newvalue);
 					
-					LOGGER.info("Manager Edit Record Succeed!" + "\n" + E_result);
-					System.out.println(E_result);
+					LOGGER.info("Manager Edit Record Succeed!" + "\n" + editResult);
+					System.out.println(editResult);
 					
 					showMenu(ManagerID);
 				break;
-				case 5:
-					System.out.println("Exits.");
-					LOGGER.info("Manager exits");
+				case 5: //exit
+					System.out.println(" ------ Exits. ------");
+					LOGGER.info("*******  Manager exits  ******");
 					keyboard.close();
 					System.exit(0);
 				default:
-					System.out.println("Invalid, please try again.");
+					System.out.println("Invalid, please try again! ");
 				}
 			}
 			

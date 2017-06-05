@@ -5,14 +5,14 @@ import java.util.Date;
 public class Student {
 	private String firstName;
 	private String lastName;
-	private String courseRegisted;
+	private String courseRegistered;
     private String status;
     private String statusDate;
        
-    public Student(String firstName, String lastName, String courseRegisted, String status, String statusDate){
+    public Student(String firstName, String lastName, String courseRegistered, String status, String statusDate){
     	this.firstName = firstName;
     	this.lastName = lastName;
-    	this.courseRegisted = courseRegisted;
+    	this.courseRegistered = courseRegistered;
         this.status = status;
         this.statusDate = statusDate;
     }
@@ -21,7 +21,7 @@ public class Student {
     public String toString(){
         String str = "First Name: "+ getFirstName() + "\n" 
 				+ "Last Name: " + getLastName() + "\n"
-				+ "Course Registed: " + getCourseRegisted() + "\n"
+				+ "Course Registed: " + getCourseRegistered() + "\n"
 				+ "Status: " + getStatus() + "\n"
 				+ "StatusDate: " + getStatusDate() + "\n";
 		return str;
@@ -51,12 +51,12 @@ public class Student {
 		this.status = status;
 	}
 
-	public String getCourseRegisted() {
-		return courseRegisted;
+	public String getCourseRegistered() {
+		return courseRegistered;
 	}
 
-	public void setCourseRegisted(String courseRegisted) {
-		this.courseRegisted = courseRegisted;
+	public void setCourseRegistered(String courseRegistered) {
+		this.courseRegistered = courseRegistered;
 	}
 
 	public String getStatusDate() {

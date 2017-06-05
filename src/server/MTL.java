@@ -33,7 +33,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 	
 	static String ManagerID = null;
 	
-	static String LOG_DIR = "/Users/m.ding/logs/serverLog/"; 
+	static String LOG_DIR = "/Users/chongli/logs/serverLog/"; 
 	
 	//store some datas in this server
 	static Map<Character, ArrayList<Record>> HASHMAP_MTL = new HashMap<Character, ArrayList<Record>>(){
@@ -69,9 +69,9 @@ public class MTL extends Server_Configuration implements ClientCalls{
 		try {
 			String server_name = MTL.SERVER_NAME;
 			ClientCalls obj = new MTL();
-//			ClientCalls stub = (ClientCalls) UnicastRemoteObject.exportObject(obj, 0);
-			Registry registry = LocateRegistry.getRegistry();
-	        registry.bind(server_name, obj);
+			ClientCalls stub = (ClientCalls) UnicastRemoteObject.exportObject(obj, 0);
+			Registry registry = LocateRegistry.getRegistry(2964);
+	        registry.bind(server_name, stub);
 	        System.out.println("MTL server is running");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -136,7 +136,8 @@ public class MTL extends Server_Configuration implements ClientCalls{
 
 	@Override
 	public String createSRecord(
-			String firstName, String lastName,
+			String firstName, 
+			String lastName,
 			String courseRegistered,
 			String status,
 			String statusDate)
@@ -428,7 +429,6 @@ public class MTL extends Server_Configuration implements ClientCalls{
 			if (connection != null)
 				connection.close();
 		}
-		
 		return null;
 	}
 	
