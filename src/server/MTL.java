@@ -70,7 +70,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 			String server_name = MTL.SERVER_NAME;
 			ClientCalls obj = new MTL();
 			ClientCalls stub = (ClientCalls) UnicastRemoteObject.exportObject(obj, 0);
-			Registry registry = LocateRegistry.getRegistry(2964);
+			Registry registry = LocateRegistry.createRegistry(2964);
 	        registry.bind(server_name, stub);
 	        System.out.println("MTL server is running");
 		} catch (Exception e) {
@@ -301,10 +301,10 @@ public class MTL extends Server_Configuration implements ClientCalls{
 		return size;
 	}
 	
-	public static String getRecSzStat() {
-		// TODO: do we need this?
-		return null;
-	}
+//	public static String getRecSzStat() {
+//		// TODO: do we need this?
+//		return null;
+//	}
 	
 	/*
 	 * the part below deals with the thread for communications between servers (UDP)
@@ -359,7 +359,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 				res = checkRecordSize() + "";
 				break;
 			}
-			res = getRecSzStat(); // TODO
+//			res = getRecSzStat(); // TODO
 			this.start();
 		}
 		
