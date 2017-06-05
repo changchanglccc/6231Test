@@ -3,7 +3,7 @@ package server;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
-public class Server_Configuration {
+public class ServerConfig {
 	private static int REGISTRY_PORT = 2964;
 	
 	private static int MTL_PORT = 2047;

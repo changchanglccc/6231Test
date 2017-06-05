@@ -24,7 +24,7 @@ import records.*;
  * @author chongli
  *
  */
-public class MTL extends Server_Configuration implements ClientCalls{
+public class MTL extends ServerConfig implements ClientCalls{
 	static int LOCAL_PORT = 2047;
 	static String SERVER_NAME = "SERVER_MTL";
 	static int START = 10000;
@@ -84,12 +84,12 @@ public class MTL extends Server_Configuration implements ClientCalls{
 	 */
 	public static void initLogger(String server_name){
 		try {
-			Server_Configuration.LOGGER = Logger.getLogger(Manager.class.getName());
-			Server_Configuration.LOGGER.setUseParentHandlers(false);
-			Server_Configuration.file = new FileHandler(LOG_DIR + server_name+".log",true);
-			Server_Configuration.LOGGER.addHandler(Server_Configuration.file);
+			ServerConfig.LOGGER = Logger.getLogger(Manager.class.getName());
+			ServerConfig.LOGGER.setUseParentHandlers(false);
+			ServerConfig.file = new FileHandler(LOG_DIR + server_name+".log",true);
+			ServerConfig.LOGGER.addHandler(ServerConfig.file);
 			SimpleFormatter formatter = new SimpleFormatter();
-			Server_Configuration.file.setFormatter(formatter);
+			ServerConfig.file.setFormatter(formatter);
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -176,8 +176,8 @@ public class MTL extends Server_Configuration implements ClientCalls{
 
 	@Override
 	public String getRecordCounts() throws RemoteException {
-		String lvlSize = getRecSzFromRemoteServer(Server_Configuration.getLVL_PORT());
-		String ddoSize = getRecSzFromRemoteServer(Server_Configuration.getDDO_PORT());
+		String lvlSize = getRecSzFromRemoteServer(ServerConfig.getLVL_PORT());
+		String ddoSize = getRecSzFromRemoteServer(ServerConfig.getDDO_PORT());
 		int mtlSize = checkRecordSize();
 		String result = "MTL: " + mtlSize + ", LVL: " + lvlSize + ", DDO: " + ddoSize ;
 		return result;
@@ -250,7 +250,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 	}
 	
 	public static boolean checkLocation(String location){
-		for(Server_Configuration.S_location slocation :Server_Configuration.S_location.values()){
+		for(ServerConfig.S_location slocation :ServerConfig.S_location.values()){
 			if(location.equalsIgnoreCase(slocation.toString())){
 				return true;
 			}
@@ -259,7 +259,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 	}
 	
 	public static boolean checkCourseRegistered(String courseRegistered){
-		for(Server_Configuration.S_courseRegistered course: Server_Configuration.S_courseRegistered.values()){
+		for(ServerConfig.S_courseRegistered course: ServerConfig.S_courseRegistered.values()){
 			if(courseRegistered.equalsIgnoreCase(course.toString())){
 				return true;
 			}
@@ -268,7 +268,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 	}
 	
 	public static boolean checkStatus(String status){
-		for(Server_Configuration.S_status sStatus: Server_Configuration.S_status.values()){
+		for(ServerConfig.S_status sStatus: ServerConfig.S_status.values()){
 			if(status.equalsIgnoreCase(sStatus.toString())){
 				return true;
 			}
@@ -351,11 +351,11 @@ public class MTL extends Server_Configuration implements ClientCalls{
 			String reqPrefix = new String(packet.getData()).trim().substring(0, 4);
 			switch (reqPrefix) {
 			case "7395":
-				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Check ManagerID: " + (new String(packet.getData()).trim().substring(4)+ " valid or not."));
+				ServerConfig.LOGGER.info("Request code: " + reqPrefix + ", " + "Check ManagerID: " + (new String(packet.getData()).trim().substring(4)+ " valid or not."));
 				res = checkManagerID(new String(packet.getData()).trim().substring(4));
 				break;
 			case "6354":
-				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Search HashMap, SearchType: " + (new String(packet.getData()).trim().substring(4)));
+				ServerConfig.LOGGER.info("Request code: " + reqPrefix + ", " + "Search HashMap, SearchType: " + (new String(packet.getData()).trim().substring(4)));
 				res = checkRecordSize() + "";
 				break;
 			}
