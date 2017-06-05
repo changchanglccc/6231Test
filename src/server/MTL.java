@@ -176,10 +176,10 @@ public class MTL extends Server_Configuration implements ClientCalls{
 
 	@Override
 	public String getRecordCounts() throws RemoteException {
-		int lvlSize = Integer.parseInt(getRecSzFromRemoteServer(Server_Configuration.getLVL_PORT()));
-		int ddoSize = Integer.parseInt(getRecSzFromRemoteServer(Server_Configuration.getDDO_PORT()));
+		String lvlSize = getRecSzFromRemoteServer(Server_Configuration.getLVL_PORT());
+		String ddoSize = getRecSzFromRemoteServer(Server_Configuration.getDDO_PORT());
 		int mtlSize = checkRecordSize();
-		String result = "MTL: " + mtlSize + ", LVL: " + lvlSize + ", ddoSize: " + ddoSize ;
+		String result = "MTL: " + mtlSize + ", LVL: " + lvlSize + ", DDO: " + ddoSize ;
 		return result;
 	}
 
@@ -206,7 +206,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 								return "Location is wrong, there are three locations : mtl, lvl and ddo.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setPhone(newValue);
+								record.getTRecord().setLocation(newValue);
 							}
 							//add log
 							return "Successfully edit : " + record.toString();
@@ -218,7 +218,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 								return "Registered Course is wrong, there are two courses: COMP6231 and COMP6651.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setAddress(newValue);
+								record.getSRecord().setCourseRegistered(newValue);
 							}
 							//add log
 							return "Successfully edit : " + record.toString();
@@ -227,7 +227,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 								return "Status is wrong, there are two status: active and not_active.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setPhone(newValue);
+								record.getSRecord().setStatus(newValue);
 							}
 							//add log
 							return "Successfully edit : " + record.toString();
@@ -236,7 +236,7 @@ public class MTL extends Server_Configuration implements ClientCalls{
 								return "statusDate is wrong, the format is 'yyyy/mm/dd'.  ";
 							}
 							synchronized(this){
-								record.getTRecord().setPhone(newValue);
+								record.getSRecord().setStatusDate(newValue);
 							}
 							//add log
 							return "Successfully edit : " + record.toString();

@@ -36,5 +36,11 @@ public class Server_Configuration {
 	public static int getDDO_PORT() {
 		return DDO_PORT;
 	}
+
+	public static int getRegistryPort() {
+		return REGISTRY_PORT;
+	}
+
+
 	
 }

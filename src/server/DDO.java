@@ -1,5 +1,435 @@
 package server;
 
-public class DDO {
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
+import client.Manager;
+import csInterface.ClientCalls;
+import records.*;
+
+/**
+ * store Records(use Hashmap)
+ * @author chongli
+ *
+ */
+public class DDO extends Server_Configuration implements ClientCalls{
+	static int LOCAL_PORT = 2049;
+	static String SERVER_NAME = "SERVER_DDO";
+	static int START = 10000;
+	static String RECORD_ID = null;
+	static int UDP_BUFFER_SIZE = 256;
+	
+	static String ManagerID = null;
+	
+	static String LOG_DIR = "/Users/chongli/logs/serverLog/"; 
+	
+	//store some datas in this server
+	static Map<Character, ArrayList<Record>> HASHMAP_DDO = new HashMap<Character, ArrayList<Record>>(){
+		{
+			put('L', new ArrayList<Record>(Arrays.asList(new Record("TR00001", new Teacher("Tina", "Lee", "Montreal", "438000111", "Professor", "ddo")))));
+			put('B', new ArrayList<Record>(Arrays.asList(new Record("SR00002", new Student("Hong", "Bao", "COMP6511", "active", "2016/05/28")))));
+			put('H', new ArrayList<Record>(Arrays.asList(new Record("SR00003", new Student("Alice", "Huang", "COMP6231", "active", "2016/11/10")))));
+			
+		}
+	};
+	
+	static ArrayList<String> MANAGERLIST = new ArrayList<String>(){
+		{
+			add("DDO1111");
+			add("DDO1112");
+			add("DDO1113");
+		}	
+	};
+	
+	public DDO(){
+		super();
+	}
+	
+	public static void main(String[] args){
+		initLogger(DDO.SERVER_NAME);
+		registerServer();
+		startListenByUDP();
+	}
+
+	public static void registerServer() {
+		try {
+			String server_name = DDO.SERVER_NAME;
+			ClientCalls obj = new DDO();
+			ClientCalls stub = (ClientCalls) UnicastRemoteObject.exportObject(obj, 0);
+			Registry registry = LocateRegistry.getRegistry(2964);
+	        registry.bind(server_name, stub);
+	        System.out.println("DDO server is running");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	/**
+	 * Initial Logger.
+	 * @param server_name
+	 */
+	public static void initLogger(String server_name){
+		try {
+			Server_Configuration.LOGGER = Logger.getLogger(Manager.class.getName());
+			Server_Configuration.LOGGER.setUseParentHandlers(false);
+			Server_Configuration.file = new FileHandler(LOG_DIR + server_name+".log",true);
+			Server_Configuration.LOGGER.addHandler(Server_Configuration.file);
+			SimpleFormatter formatter = new SimpleFormatter();
+			Server_Configuration.file.setFormatter(formatter);
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public String createTRecord(
+			String firstName, String lastName,
+			String address, String phone,
+			String specialization,
+			String location) throws RemoteException {
+		//check format
+		if(!checkLocation(location)){
+			return " There are three locations: mtl, lvl and ddo, please choose one of them...";
+		}
+		
+		ArrayList<Record> recordList = null;
+		Character key = lastName.charAt(0);
+		
+		if(HASHMAP_DDO.containsKey(key)){
+			recordList = HASHMAP_DDO.get(key);
+		}else{
+			recordList = new ArrayList<Record>();
+		}
+		
+		//create a TRecord
+		Teacher Teacher = new Teacher(firstName, lastName, address, phone, specialization, location);
+		RECORD_ID = "TR" + getSTART() ;
+		Record TRecord = new Record(RECORD_ID, Teacher);
+		recordList.add(TRecord);
+		synchronized(this){
+			HASHMAP_DDO.put(key, recordList);
+		}
+		//need to add log
+		return " You have create a TRecord ：" + TRecord ;
+	}
+	
+	public synchronized int getSTART(){
+		START ++;
+		return START;
+	}
+
+	@Override
+	public String createSRecord(
+			String firstName, 
+			String lastName,
+			String courseRegistered,
+			String status,
+			String statusDate)
+					throws RemoteException {
+		//check format
+		if(!checkCourseRegistered(courseRegistered)){
+			return " Course is wrong! There are two courses to be registered: COMP6231 and COMP6651. ";
+		}
+		if(!checkStatus(status)){
+			return " Status is wrong! There are two status : active and not_active. ";
+		}
+		if(!checkStatusDate(statusDate)){   //has doubt about it---> when run the code and check!
+			return " The format of statusDate is worong! The correct format is 'yyyy/mm/dd'. ";
+		}
+		
+		ArrayList<Record> recordList = null;
+		Character key = lastName.charAt(0);
+		
+		if(HASHMAP_DDO.containsKey(key)){
+			recordList = HASHMAP_DDO.get(key);
+		}else{
+			recordList = new ArrayList<Record>();
+		}
+		
+		//create a SRecord
+		Student student = new Student(firstName, lastName, courseRegistered, status, statusDate);
+		RECORD_ID = "SR" + getSTART() ;
+		Record SRecord = new Record(RECORD_ID, student);
+		recordList.add(SRecord);
+		synchronized(this){
+			HASHMAP_DDO.put(key, recordList);
+		}
+		//need to add log
+		return " You have create a SRecord ：" + SRecord ;
+	}
+
+	@Override
+	public String getRecordCounts() throws RemoteException {
+		String lvlSize = getRecSzFromRemoteServer(Server_Configuration.getLVL_PORT());
+		String mtlSize = getRecSzFromRemoteServer(Server_Configuration.getMTL_PORT());
+		int ddoSize = checkRecordSize();
+		String result = "MTL: " + mtlSize + ", LVL: " + lvlSize + ", DDO: " + ddoSize ;
+		return result;
+	}
+
+	@Override
+	public String editRecord(String recordID, String fieldName, String newValue) throws RemoteException {
+		for(Map.Entry<Character, ArrayList<Record>> entry : LVL.HASHMAP_LVL.entrySet()){
+			for(Record record: entry.getValue()){
+				if(recordID.equals(record.getRecordID())){
+					if(recordID.substring(0, 2).equalsIgnoreCase("TR")){
+						if(fieldName.equalsIgnoreCase("address")){
+							synchronized(this){
+								record.getTRecord().setAddress(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("phone")){
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("location")){
+							if(!checkLocation(newValue)){
+								return "Location is wrong, there are three locations : mtl, lvl and ddo.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}
+						
+					}else if(recordID.substring(0, 2).equalsIgnoreCase("SR")){
+						if(fieldName.equalsIgnoreCase("courseRegistered")){
+							if(!checkCourseRegistered(newValue)){
+								return "Registered Course is wrong, there are two courses: COMP6231 and COMP6651.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setAddress(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("status")){
+							if(!checkStatus(newValue)){
+								return "Status is wrong, there are two status: active and not_active.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}else if(fieldName.equalsIgnoreCase("statusDate")){
+							if(!checkLocation(newValue)){
+								return "statusDate is wrong, the format is 'yyyy/mm/dd'.  ";
+							}
+							synchronized(this){
+								record.getTRecord().setPhone(newValue);
+							}
+							//add log
+							return "Successfully edit : " + record.toString();
+						}
+					}
+				}
+								
+			}
+		}
+		return null;
+	}
+	
+	public static boolean checkLocation(String location){
+		for(Server_Configuration.S_location slocation :Server_Configuration.S_location.values()){
+			if(location.equalsIgnoreCase(slocation.toString())){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean checkCourseRegistered(String courseRegistered){
+		for(Server_Configuration.S_courseRegistered course: Server_Configuration.S_courseRegistered.values()){
+			if(courseRegistered.equalsIgnoreCase(course.toString())){
+				return true;
+			}
+		}		
+		return false;
+	}
+	
+	public static boolean checkStatus(String status){
+		for(Server_Configuration.S_status sStatus: Server_Configuration.S_status.values()){
+			if(status.equalsIgnoreCase(sStatus.toString())){
+				return true;
+			}
+		}		
+		return false;
+	}
+	
+	/**
+	 * check the date format
+	 * @param date
+	 * @return
+	 */
+	public static boolean checkStatusDate(String date){
+		SimpleDateFormat simpleDate = new SimpleDateFormat("yyyy/mm/dd");
+		simpleDate.setLenient(false);
+		try {
+			simpleDate.parse(date);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public static int checkRecordSize() {
+		int size = 0;
+		for (Map.Entry<Character, ArrayList<Record>> entry : DDO.HASHMAP_DDO.entrySet()) {
+			size += entry.getValue().size();
+		}
+		return size;
+	}
+	
+//	public static String getRecSzStat() {
+//		// TODO: do we need this?
+//		return null;
+//	}
+	
+	/*
+	 * the part below deals with the thread for communications between servers (UDP)
+	 * Ref: https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html
+	 */
+	
+	// reply to packets(requests) from other server comes in (to check the record count)
+	public static void startListenByUDP() {
+		DatagramSocket connection = null;
+		try {
+			connection = new DatagramSocket(LOCAL_PORT);
+			while(true){
+				byte[] buf = new byte[UDP_BUFFER_SIZE]; //a buffer used to create a DatagramPacket
+				// packet is used to receive a datagram from the socket
+				DatagramPacket packet = new DatagramPacket(buf, UDP_BUFFER_SIZE); 
+				connection.receive(packet); // waits forever until a packet is received
+				new UDPListener(connection, packet);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null)
+				connection.close();
+		}
+	}
+	
+	public static class UDPListener extends Thread {
+		
+		DatagramSocket connection = null;
+		DatagramPacket packet = null;
+		String res = null;
+		
+		public UDPListener() {
+			this("no arguments");
+		}
+		
+		public UDPListener(String s) {
+			System.out.println(s);
+		}
+		
+		public UDPListener(DatagramSocket connection, DatagramPacket packet) {
+			this.connection = connection;
+			this.packet = packet;
+			String reqPrefix = new String(packet.getData()).trim().substring(0, 4);
+			switch (reqPrefix) {
+			case "7395":
+				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Check ManagerID: " + (new String(packet.getData()).trim().substring(4)+ " valid or not."));
+				res = checkManagerID(new String(packet.getData()).trim().substring(4));
+				break;
+			case "6354":
+				Server_Configuration.LOGGER.info("Request code: " + reqPrefix + ", " + "Search HashMap, SearchType: " + (new String(packet.getData()).trim().substring(4)));
+				res = checkRecordSize() + "";
+				break;
+			}
+//			res = getRecSzStat(); // TODO
+			this.start();
+		}
+		
+		/**
+		 * Check ManagerID.
+		 * @param managerID
+		 * @return
+		 */
+		public static String checkManagerID(String managerID){
+			for(String account: DDO.MANAGERLIST){
+				if(account.equalsIgnoreCase(managerID)){
+					DDO.ManagerID = managerID;
+					return "valid";
+				}
+			}
+			return "invalid";
+		}
+		
+		public void run() {
+			DatagramPacket reply = new DatagramPacket(
+					res.getBytes(),
+					res.getBytes().length,
+					packet.getAddress(),
+					packet.getPort()
+					);
+			try {
+				connection.send(reply);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * send request to remote server, and get other server's hashmap size back
+	 * @param port
+	 * @return
+	 */
+	public static String getRecSzFromRemoteServer(int port) {
+		DatagramSocket connection = null;
+		String ip = "127.0.0.1";
+		String reqPrefix = "6354"; // prefix code 6354 means asking the record size
+		int portNbr = port;
+		
+		try {
+			connection = new DatagramSocket();
+			
+			// send request to remote server
+			byte[] msg = (new String(reqPrefix)).getBytes();
+			InetAddress host = InetAddress.getByName(ip);
+			DatagramPacket request = new DatagramPacket(
+					msg,
+					msg.length,
+					host,
+					portNbr);
+			connection.send(request);
+			
+			// get result from the response from remote server
+			byte[] buf = new byte[UDP_BUFFER_SIZE];
+			DatagramPacket reply = new DatagramPacket(buf, UDP_BUFFER_SIZE);
+			connection.receive(reply);
+			String res = new String(reply.getData()).trim();
+			return res;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null)
+				connection.close();
+		}
+		return null;
+	}
+		
+	
 }

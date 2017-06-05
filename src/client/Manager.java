@@ -18,9 +18,9 @@ public class Manager {
 	static String ManagerID;
 	static ClientCalls STUB;
 	
-	static int SERVER_PORT_MTL = 2047;
-	static int SERVER_PORT_LVL = 2048;
-	static int SERVER_PORT_DDO = 2049;
+	static int PORT_MTL = 2047;
+	static int PORT_LVL = 2048;
+	static int PORT_DDO = 2049;
 	
 	static int BUFFER_SIZE = 256;
 	
@@ -90,11 +90,11 @@ public class Manager {
 		int serverPort = 0;
 		
 		if(ManagerID.substring(0, 3).equalsIgnoreCase("MTL")){
-			serverPort = SERVER_PORT_MTL;
+			serverPort = PORT_MTL;
 		}else if(ManagerID.substring(0, 3).equalsIgnoreCase("LVL")){
-			serverPort = SERVER_PORT_LVL;
+			serverPort = PORT_LVL;
 		}else if(ManagerID.substring(0, 3).equalsIgnoreCase("DDO")){
-			serverPort = SERVER_PORT_DDO;
+			serverPort = PORT_DDO;
 		}
 		
 	    try {
