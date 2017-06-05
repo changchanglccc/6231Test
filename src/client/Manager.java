@@ -71,7 +71,7 @@ public class Manager {
 		}
 	}
 	
-	public static Boolean checkManagerIDFormat(String managerID){ //???? why we input MTL1114, it gives err back?(yesterday night test)
+	public static Boolean checkManagerIDFormat(String managerID){ 
 		String pattern = "^(MTL|LVL|DDO)(\\d{4})$";
 		Pattern re = Pattern.compile(pattern,Pattern.CASE_INSENSITIVE);
 		Matcher matcher = re.matcher(managerID);
