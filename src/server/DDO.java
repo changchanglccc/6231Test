@@ -37,6 +37,7 @@ public class DDO extends ServerConfig implements ClientCalls{
 	static String LOG_DIR = "/Users/chongli/logs/serverLog/";
 //	static String LOG_DIR = "G:/workspace/Logs/serverLog/";
 
+
 	//store some datas in this server
 	static Map<Character, ArrayList<Record>> HASHMAP_DDO = new HashMap<Character, ArrayList<Record>>(){
 		{

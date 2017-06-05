@@ -35,6 +35,7 @@ public class LVL extends ServerConfig implements ClientCalls{
 	static int UDP_BUFFER_SIZE = 256;
 
 	static String ManagerID = null;
+
 	
 	static String LOG_DIR = "/Users/chongli/logs/serverLog/";
 //	static String LOG_DIR = "G:/workspace/Logs/serverLog/";
