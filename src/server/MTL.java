@@ -81,6 +81,9 @@ public class MTL extends ServerConfig implements ClientCalls{
 	/**
 	 * Initial Logger.
 	 * @param server_name
+	 * Reference of logger:
+	 * https://stackoverflow.com/questions/2533227/how-can-i-disable-the-default-console-handler-while-using-the-java-logging-api
+	 * https://stackoverflow.com/questions/194765/how-do-i-get-java-logging-output-to-appear-on-a-single-line
 	 */
 	public static void initLogger(String server_name){
 		try {
