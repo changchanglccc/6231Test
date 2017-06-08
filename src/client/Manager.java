@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
@@ -13,7 +15,7 @@ import java.util.regex.Pattern;
 
 import csInterface.*;
 
-public class Manager {
+public class Manager implements Runnable{
 	
 	static String ManagerID;
 	static ClientCalls STUB;
@@ -141,7 +143,19 @@ public class Manager {
 	}
 	
 	// TODO: modify
-	public static void main(String[] args){
+	public static void main(String[] args) throws Exception{
+		Manager m1 = new Manager();
+		  m1.ManagerID = "MTL1111";
+		  m1.run();
+		  
+		  Manager m2 = new Manager();
+		  m2.ManagerID = "MTL1112";
+		  m2.run();
+		  
+		  Manager m3 = new Manager();
+		  m3.ManagerID = "MTL1113";
+		  m3.run();
+		  		  
 		validateManager();
 		while(!checkServerInfo(ManagerID)){
 			System.err.println("Wrong ManagerID!\n");
@@ -251,4 +265,78 @@ public class Manager {
 			err.printStackTrace();
 		}
 	}
+	
+//	public void run(){
+//		Registry registry = null;
+//		ClientCalls obj = null;
+//		try {
+//			registry = LocateRegistry.getRegistry(2964);
+//		} catch (RemoteException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		try {
+//			obj = (ClientCalls)registry.lookup("SERVER_MTL");
+//		} catch (RemoteException | NotBoundException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		try {
+//			String result = obj.getRecordCounts();
+//			System.out.println(result);
+//		} catch (RemoteException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//	}
+	
+	public void run() {
+		  Registry reg = null;
+		try {
+			reg = LocateRegistry.getRegistry(2964);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  ClientCalls cc = null;
+		try {
+			cc = (ClientCalls) reg.lookup("SERVER_MTL");
+		} catch (RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  String result = null;
+		try {
+			if(ManagerID.equalsIgnoreCase("MTL1111")){
+				result = cc.editRecord("TR00001","location", "lvl");
+			}else if(ManagerID.equalsIgnoreCase("MTL1112")){
+				result = cc.editRecord("TR00001","location", "ddo");
+			}else if(ManagerID.equalsIgnoreCase("MTL1113")){
+				result = cc.editRecord("TR00001","location", "mtl");
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  System.out.println(result);
+		 }
+	
+	public void setManagerID(String ManagerID){
+		this.ManagerID = ManagerID;
+	}
+	
+//	public void createManagers(){
+//		Manager m1 = new Manager();		
+//		m1.setManagerID("MTL1111");
+//		m1.run();
+//		Manager m2 = new Manager();
+//		m2.setManagerID("MTL1112");
+////		m2.ManagerID = "MTL1112";
+//		m2.run();
+//		Manager m3 = new Manager();
+//		m3.setManagerID("MTL1113");
+////		m3.ManagerID = "MTL1113";
+//		m3.run();
+//	}
 }
