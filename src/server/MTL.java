@@ -33,8 +33,9 @@ public class MTL extends ServerConfig implements ClientCalls{
 
 	static String ManagerID = null;
 
-	static String LOG_DIR = "/Users/chongli/logs/serverLog/";
+//	static String LOG_DIR = "/Users/chongli/logs/serverLog/";
 //	static String LOG_DIR = "G:/workspace/Logs/serverLog/";
+	static String LOG_DIR = "/Users/m.ding/Developer/comp6231-distributed-system-design/asg1/logs/serverLog/";
 
 	//store some datas in this server
 	static Map<Character, ArrayList<Record>> HASHMAP_MTL = new HashMap<Character, ArrayList<Record>>(){
@@ -211,6 +212,13 @@ public class MTL extends ServerConfig implements ClientCalls{
 								return "Location is wrong, there are three locations : mtl, lvl and ddo.  ";
 							}
 							synchronized(this){
+								// this is only for demo of sending multiple requests at the same time
+								try {
+									Thread.sleep(2000);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+								// ====================================================================
 								record.getTRecord().setLocation(newValue);
 							}
 							ServerConfig.LOGGER.info("Manager: "+ MTL.ManagerID + " edit the location of teacher record: "+ "\n" + record.toString());

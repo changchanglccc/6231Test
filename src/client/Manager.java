@@ -28,7 +28,7 @@ public class Manager implements Runnable{
 	
 	static Logger LOGGER = null;
 	static FileHandler FILE = null;
-	static String LOG_DIR = "/Users/chongli/logs/clientLog/"; 
+	static String LOG_DIR = "/Users/m.ding/Developer/comp6231-distributed-system-design/asg1/logs/clientLog/"; 
 	
 	public static void showMenu(String managerID){
 
@@ -142,8 +142,9 @@ public class Manager implements Runnable{
 		}
 	}
 	
-	// TODO: modify
 	public static void main(String[] args) throws Exception{
+		
+		// this is only for demo of sending multiple requests at the same time
 		Manager m1 = new Manager();
 		  m1.ManagerID = "MTL1111";
 		  m1.run();
@@ -155,7 +156,8 @@ public class Manager implements Runnable{
 		  Manager m3 = new Manager();
 		  m3.ManagerID = "MTL1113";
 		  m3.run();
-		  		  
+		// ====================================================================
+		  
 		validateManager();
 		while(!checkServerInfo(ManagerID)){
 			System.err.println("Wrong ManagerID!\n");
@@ -266,44 +268,18 @@ public class Manager implements Runnable{
 		}
 	}
 	
-//	public void run(){
-//		Registry registry = null;
-//		ClientCalls obj = null;
-//		try {
-//			registry = LocateRegistry.getRegistry(2964);
-//		} catch (RemoteException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//		try {
-//			obj = (ClientCalls)registry.lookup("SERVER_MTL");
-//		} catch (RemoteException | NotBoundException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//		try {
-//			String result = obj.getRecordCounts();
-//			System.out.println(result);
-//		} catch (RemoteException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//	}
-	
+	// this is only for demo of sending multiple requests at the same time
 	public void run() {
 		  Registry reg = null;
 		try {
 			reg = LocateRegistry.getRegistry(2964);
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		  ClientCalls cc = null;
 		try {
 			cc = (ClientCalls) reg.lookup("SERVER_MTL");
 		} catch (RemoteException | NotBoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		  String result = null;
@@ -316,7 +292,6 @@ public class Manager implements Runnable{
 				result = cc.editRecord("TR00001","location", "mtl");
 			}
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		  System.out.println(result);
@@ -326,17 +301,4 @@ public class Manager implements Runnable{
 		this.ManagerID = ManagerID;
 	}
 	
-//	public void createManagers(){
-//		Manager m1 = new Manager();		
-//		m1.setManagerID("MTL1111");
-//		m1.run();
-//		Manager m2 = new Manager();
-//		m2.setManagerID("MTL1112");
-////		m2.ManagerID = "MTL1112";
-//		m2.run();
-//		Manager m3 = new Manager();
-//		m3.setManagerID("MTL1113");
-////		m3.ManagerID = "MTL1113";
-//		m3.run();
-//	}
 }
